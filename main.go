@@ -10,48 +10,20 @@ import (
 type SimpleAsset struct {
 }
 
-type simpleStruct struct {
-    key string
-    data string
-}
-
-type simpleStruct2 struct {
-    ss simpleStruct
-}
-
 func (t *SimpleAsset) Init(stub shim.ChaincodeStubInterface) peer.Response {
-  key := "testKey"
-  data := "dataInit"
-  err := stub.PutState(key, []byte(data))
-  if err != nil {
-     return shim.Error(err.Error())
-  }
   return shim.Success(nil)
 }
 
 func (t *SimpleAsset) Invoke(stub shim.ChaincodeStubInterface) peer.Response {
-  keyValuePair := simpleStruct {
-      key: "testKey",
-      data: "dataNew",
+  _, args := stub.GetFunctionAndParameters()
+  if len(args) == 0 {
+     return shim.Error("No argument specified.")
   }
+  //second return value stands for potential error
+  result, _ := stub.GetState(args[0])
 
-  ss2 := simpleStruct2 {
-      ss: keyValuePair,
-  }
-
-  err := stub.PutState(ss2.ss.key, []byte(keyValuePair.data))
-  if err != nil {
-     return shim.Error("could not write new data")
-  }
-  //vulnerability
-  respone, err := stub.GetState(ss2.ss.key)
-  if err != nil {
-     return shim.Error("could not read data")
-  }
-
-  return shim.Success([]byte(respone))
+  return shim.Success(result)
 }
-
 
 func main() {
   if err := shim.Start(new(SimpleAsset)); err != nil {
