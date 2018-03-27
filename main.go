@@ -11,16 +11,27 @@ type SimpleAsset struct {
 }
 
 func (t *SimpleAsset) Init(stub shim.ChaincodeStubInterface) peer.Response {
-	return shim.Success([]byte("success"))
+	key := "testKey"
+	data := "dataInit"
+	err := stub.PutState(key, []byte(data))
+	if err != nil {
+		return shim.Error(err.Error())
+	}
+	return shim.Success(nil)
 }
 
 func (t *SimpleAsset) Invoke(stub shim.ChaincodeStubInterface) peer.Response {
-	go myGoRoutineCall()
-	return shim.Success([]byte("success"))
-}
+	key := "testKey"
 
-func myGoRoutineCall() string {
-	return "rand"
+	iterator, _ := stub.GetHistoryForKey(key)
+	data, _ := iterator.Next()
+
+	err := stub.PutState(key, data.Value)
+	if err != nil {
+		return shim.Error("could not write new data")
+	}
+
+	return shim.Success([]byte("stored"))
 }
 
 func main() {
