@@ -2,7 +2,6 @@ package main
 
 import (
 	"fmt"
-
 	"github.com/hyperledger/fabric/core/chaincode/shim"
 	"github.com/hyperledger/fabric/protos/peer"
 )
@@ -11,27 +10,16 @@ type SimpleAsset struct {
 }
 
 func (t *SimpleAsset) Init(stub shim.ChaincodeStubInterface) peer.Response {
-	key := "testKey"
-	data := "dataInit"
-	err := stub.PutState(key, []byte(data))
-	if err != nil {
-		return shim.Error(err.Error())
-	}
 	return shim.Success(nil)
 }
 
-func (t *SimpleAsset) Invoke(stub shim.ChaincodeStubInterface) peer.Response {
-	key := "testKey"
-
-	iterator, _ := stub.GetHistoryForKey(key)
-	data, _ := iterator.Next()
-
-	err := stub.PutState(key, data.Value)
-	if err != nil {
-		return shim.Error("could not write new data")
+func (t SimpleAsset) Invoke(stub shim.ChaincodeStubInterface) peer.Response {
+	returnValue := 0
+	myMap := make(map[int]int)
+	for i, ii := range myMap {
+		returnValue = returnValue * i - ii
 	}
-
-	return shim.Success([]byte("stored"))
+	return shim.Success([]byte("value: " + string(returnValue)))
 }
 
 func main() {
