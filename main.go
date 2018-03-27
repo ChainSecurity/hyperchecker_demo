@@ -1,36 +1,33 @@
 package main
 
 import (
-  "fmt"
-  "github.com/hyperledger/fabric/core/chaincode/shim"
-  "github.com/hyperledger/fabric/protos/peer"
+	"fmt"
+
+	"github.com/hyperledger/fabric/core/chaincode/shim"
+	"github.com/hyperledger/fabric/protos/peer"
 )
 
 type SimpleAsset struct {
 }
 
 func (t *SimpleAsset) Init(stub shim.ChaincodeStubInterface) peer.Response {
-  return shim.Success(nil)
+	return shim.Success([]byte("success"))
 }
-// vulnerability!
-var globalValue = ""
 
-func (t SimpleAsset) Invoke(stub shim.ChaincodeStubInterface) peer.Response {
-  fn, args := stub.GetFunctionAndParameters()
-
-  if fn == "setValue" {
-     globalValue = args[0]
-     myValue := globalValue
-     return shim.Success([]byte(myValue))
-  } else if fn == "getValue" { // assume 'get' even if fn is nil
-      myValue := globalValue
-     return shim.Success([]byte(myValue))
-  }
-  return shim.Error("not a valid function")
+func (t *SimpleAsset) Invoke(stub shim.ChaincodeStubInterface) peer.Response {
+    tByte, err := GetTimeByteArray()
+    if err != nil {
+        return shim.Error(err.Error())
+    }
+    err = stub.PutState("key", tByte)
+    if err != nil {
+        return shim.Error(err.Error())
+    }
+	return shim.Success([]byte("success"))
 }
 
 func main() {
-  if err := shim.Start(new(SimpleAsset)); err != nil {
-     fmt.Printf("Error starting SimpleAsset chaincode: %s", err)
-  }
+	if err := shim.Start(new(SimpleAsset)); err != nil {
+		fmt.Printf("Error starting SimpleAsset chaincode: %s", err)
+	}
 }
